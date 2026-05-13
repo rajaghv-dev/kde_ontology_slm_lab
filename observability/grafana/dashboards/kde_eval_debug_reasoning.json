@@ -1,0 +1,70 @@
+{
+  "uid": "kde-eval-debug-reasoning",
+  "title": "KDE Eval: Debug Reasoning",
+  "tags": ["kde", "eval"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "time": {"from": "now-24h", "to": "now"},
+  "templating": {
+    "list": [
+      {
+        "name": "split",
+        "type": "query",
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "query": "label_values(kde_eval_component_accuracy, split)",
+        "includeAll": true,
+        "multi": true,
+        "current": {"text": "All", "value": "$__all"}
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Component accuracy",
+      "gridPos": {"x": 0, "y": 0, "w": 8, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "avg(kde_eval_component_accuracy{split=~\"$split\"})", "refId": "A"}]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Hallucination rate",
+      "gridPos": {"x": 8, "y": 0, "w": 8, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "avg(kde_eval_hallucination_rate{split=~\"$split\"})", "refId": "A"}]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Evidence precision",
+      "gridPos": {"x": 16, "y": 0, "w": 8, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "avg(kde_eval_evidence_precision{split=~\"$split\"})", "refId": "A"}]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Pass rate vs hallucination over time",
+      "gridPos": {"x": 0, "y": 4, "w": 24, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "avg(kde_eval_component_accuracy{split=~\"$split\"})", "refId": "A", "legendFormat": "component_accuracy"},
+        {"expr": "avg(kde_eval_hallucination_rate{split=~\"$split\"})", "refId": "B", "legendFormat": "hallucination_rate"},
+        {"expr": "avg(kde_eval_evidence_precision{split=~\"$split\"})", "refId": "C", "legendFormat": "evidence_precision"}
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Command safety score",
+      "gridPos": {"x": 0, "y": 12, "w": 24, "h": 6},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "avg(kde_eval_command_safety_score{split=~\"$split\"})", "refId": "A", "legendFormat": "safety"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+# configs/training.yaml
+#
+# The training recipe. The CLI's `kde-lab train` reads this file but does
+# not, in v0, actually launch a training run — it prints the resolved
+# config and exits. Launching real training requires a GPU plus the [train]
+# extra (torch, peft, trl, bitsandbytes), which the lab does not install by
+# default ("recipes only, no auto-downloads").
+#
+# Resolution order:
+#   1. start with the top-level keys (the defaults below)
+#   2. look up `profile:` in the `profiles:` map
+#   3. deep-merge the profile's keys over the defaults
+#
+# That way one file can describe both a Colab T4 run and a 48GB workstation
+# run, and a learner can diff them at a glance.
+
+# ----------------------------------------------------------------------
+# Top-level: the "local 8GB GPU" recipe is the baseline. Every profile
+# below is a delta against this.
+# ----------------------------------------------------------------------
+profile: "local_8gb"            # which profile in `profiles:` overrides the defaults
+model_key: "qwen_small"         # entry in configs/models.yaml to use
+dataset_path: "artifacts/datasets/mini_repo_sft_v0.jsonl"   # input JSONL
+output_dir: "artifacts/training_runs/v0_qwen_sft"           # adapter + logs
+max_seq_length: 2048            # truncation length; longer = more VRAM
+load_in_4bit: true              # bitsandbytes 4-bit quant of the base; needed for 8GB
+
+# LoRA hyperparameters. `target_modules: "all-linear"` is the modern default;
+# it covers attention + MLP projections without us hard-coding architecture
+# names that vary across model families.
+lora:
+  r: 16                         # rank of the LoRA decomposition; 8/16/32/64 are typical
+  alpha: 32                     # scaling = alpha / r; keep alpha ~= 2 * r
+  dropout: 0.05                 # mild regularisation
+  target_modules: "all-linear"  # apply to every linear; works on Qwen, Llama, Gemma, Phi
+
+# Optimiser + schedule. Conservative values that fit in a Colab T4.
+optim:
+  learning_rate: 2.0e-4         # LoRA tolerates higher LRs than full FT
+  batch_size: 1                 # per-device batch; raised by larger profiles
+  gradient_accumulation_steps: 16  # effective batch = batch_size * grad_accum
+  num_train_epochs: 3
+  warmup_steps: 50
+  weight_decay: 0.01
+  lr_scheduler_type: "cosine"   # cosine decay to ~0 by end of training
+  logging_steps: 10
+  eval_steps: 100               # eval on held-out validation split every N steps
+  save_steps: 200               # checkpoint cadence
+  seed: 42                      # deterministic data shuffle / init when possible
+
+# Sequence packing concatenates short examples into the same window to
+# improve throughput. Off in v0 because it interacts with masking
+# (`train_on_responses_only`) and we want a learner to enable it consciously.
+packing: false
+
+# Mask the instruction; only compute loss on the answer tokens. This is the
+# behaviour you almost always want for SFT on Q/A data.
+train_on_responses_only: true
+
+# A human-readable name for the resulting LoRA adapter directory.
+adapter_name: "kde_architecture_v0"
+
+# ----------------------------------------------------------------------
+# Profiles. Each one is a partial dict that is deep-merged over the
+# top-level defaults. Use the inline comments as a guide for picking one.
+# ----------------------------------------------------------------------
+profiles:
+
+  # Colab free T4 (16GB but shared; load_in_4bit is essential).
+  colab_t4:
+    load_in_4bit: true
+    optim:
+      batch_size: 1
+      gradient_accumulation_steps: 8       # smaller grad_accum to surface loss curves faster
+
+  # 8GB consumer GPU (e.g. RTX 3060 8GB). Uses the defaults verbatim.
+  local_8gb: {}
+
+  # 16GB GPU (e.g. RTX 4060 Ti 16GB or T4): can afford a real batch.
+  local_16gb:
+    optim:
+      batch_size: 2
+      gradient_accumulation_steps: 8
+
+  # 24GB GPU (e.g. RTX 3090 / 4090). Bigger LoRA + bigger batch.
+  local_24gb:
+    optim:
+      batch_size: 4
+      gradient_accumulation_steps: 4
+    lora:
+      r: 32
+      alpha: 64
+
+  # 48GB GPU (e.g. RTX A6000 / L40S). Full-size LoRA, near-full-FT effective batch.
+  local_48gb:
+    optim:
+      batch_size: 8
+      gradient_accumulation_steps: 2
+    lora:
+      r: 64
+      alpha: 128

@@ -1,0 +1,95 @@
+# configs/models.yaml
+#
+# Declares the seven base models the lab targets. None of these names are
+# hard-coded into the code path; the lab only resolves them when training is
+# explicitly requested. We use `CHANGE_ME` placeholders because the exact
+# Hugging Face id of any given small model drifts over time (e.g. variants
+# like `-Instruct`, `-Chat`, version bumps), and we want the learner to make
+# a deliberate choice rather than inherit a stale string.
+#
+# Validation flow:
+#   - `availability_check: true` tells the training entrypoint to verify the
+#     local cache (or the HF Hub, if --allow-network is given) before launch.
+#   - `tokenizer_extend: false` means we will not add KDE-specific tokens to
+#     the base tokenizer by default. Flip to `true` only after running the
+#     tokenizer analyzer and seeing meaningful compression gains
+#     (see configs/tokenizer.yaml).
+#
+# All `train_method` values are interpreted by src/training/* (currently
+# scaffolded; the CLI's `kde-lab train` is a placeholder in v0).
+
+models:
+
+  # ------------------------------------------------------------------
+  # Tier 1: small and very small (good for laptops, Colab T4)
+  # ------------------------------------------------------------------
+  qwen_small:
+    base_model: "Qwen/CHANGE_ME"        # e.g. Qwen2.5-0.5B-Instruct; verify on HF before use
+    family: "qwen"
+    train_method: "lora"                # parameter-efficient fine-tune via PEFT
+    max_seq_length: 2048                # tradeoff: long enough for one file slice
+    tokenizer_extend: false             # measure with `kde-lab tokenizer` first
+    availability_check: true            # verify weights exist before launching training
+    notes: "Qwen small variant; verify exact model id at HF before use."
+
+  smol:
+    base_model: "HuggingFaceTB/CHANGE_ME"  # e.g. SmolLM-360M or SmolLM-135M
+    family: "smol"
+    train_method: "lora"
+    max_seq_length: 2048
+    tokenizer_extend: false
+    availability_check: true
+    notes: "SmolLM tiny variant; smallest practical option for CPU experiments."
+
+  tinyllama:
+    base_model: "TinyLlama/CHANGE_ME"   # e.g. TinyLlama-1.1B-Chat-v1.0
+    family: "llama"
+    train_method: "lora"
+    max_seq_length: 2048
+    tokenizer_extend: false
+    availability_check: true
+    notes: "TinyLlama 1.1B; widely used baseline. Llama-style tokenizer."
+
+  gemma_small:
+    base_model: "google/CHANGE_ME"      # e.g. gemma-2-2b-it
+    family: "gemma"
+    train_method: "lora"
+    max_seq_length: 2048
+    tokenizer_extend: false
+    availability_check: true
+    notes: "Google Gemma small variant; check license terms before training."
+
+  # ------------------------------------------------------------------
+  # Tier 2: a bit larger; same recipe but expect higher VRAM
+  # ------------------------------------------------------------------
+  smollm3:
+    base_model: "HuggingFaceTB/CHANGE_ME"   # e.g. SmolLM3-3B
+    family: "smol"
+    train_method: "lora"
+    max_seq_length: 4096                # newer SmolLM3 supports longer context
+    tokenizer_extend: false
+    availability_check: true
+    notes: "SmolLM3 mid-size; sits between SmolLM and full-size models."
+
+  phi_small:
+    base_model: "microsoft/CHANGE_ME"   # e.g. Phi-3-mini-4k-instruct
+    family: "phi"
+    train_method: "lora"
+    max_seq_length: 4096
+    tokenizer_extend: false
+    availability_check: true
+    notes: "Microsoft Phi small variant; reasoning-tuned base."
+
+  # ------------------------------------------------------------------
+  # Tier 3: a slot for a user-supplied local checkpoint. The lab is
+  # designed to be re-runnable on a model the learner has trained
+  # themselves or fetched manually.
+  # ------------------------------------------------------------------
+  local_custom:
+    base_model: "/path/to/local/CHANGE_ME"  # absolute path to a local HF-format checkpoint
+    family: "custom"
+    train_method: "full"                    # full-parameter fine-tune is plausible for tiny custom models
+    max_seq_length: 2048
+    tokenizer_extend: false
+    availability_check: false               # local-only; skip remote checks
+    notes: "User-supplied local model; useful for testing the training loop without internet."

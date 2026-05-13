@@ -1,0 +1,49 @@
+{
+  "uid": "kde-ontology-graph",
+  "title": "KDE Ontology Graph",
+  "tags": ["kde", "ontology", "graph"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {"from": "now-24h", "to": "now"},
+  "templating": {"list": []},
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Graph nodes",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "sum(kde_graph_nodes_total)", "refId": "A"}]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Graph edges",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "sum(kde_graph_edges_total)", "refId": "A"}]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Nodes vs edges over time",
+      "gridPos": {"x": 0, "y": 4, "w": 24, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "sum(kde_graph_nodes_total)", "refId": "A", "legendFormat": "nodes"},
+        {"expr": "sum(kde_graph_edges_total)", "refId": "B", "legendFormat": "edges"}
+      ]
+    },
+    {
+      "id": 4,
+      "type": "piechart",
+      "title": "Top-10 entity types",
+      "gridPos": {"x": 0, "y": 12, "w": 24, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "topk(10, sum by (component) (kde_ontology_entities_total))", "refId": "A", "legendFormat": "{{component}}"}
+      ]
+    }
+  ]
+}

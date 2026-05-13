@@ -1,0 +1,54 @@
+{
+  "uid": "kde-tokenizer-report",
+  "title": "KDE Tokenizer Report",
+  "tags": ["kde", "tokenizer"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "time": {"from": "now-7d", "to": "now"},
+  "templating": {
+    "list": [
+      {
+        "name": "model_family",
+        "type": "query",
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "query": "label_values(kde_tokenizer_tokens_per_term, model_family)",
+        "includeAll": true,
+        "multi": true,
+        "current": {"text": "All", "value": "$__all"}
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "bargauge",
+      "title": "Mean tokens per canonical term",
+      "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "avg by (model_family) (kde_tokenizer_tokens_per_term{model_family=~\"$model_family\"})", "refId": "A", "legendFormat": "{{model_family}}"}
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Compression ratio",
+      "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "kde_tokenizer_compression_ratio{model_family=~\"$model_family\"}", "refId": "A", "legendFormat": "{{model_family}}"}
+      ]
+    },
+    {
+      "id": 3,
+      "type": "table",
+      "title": "Tokenizer rows (latest)",
+      "gridPos": {"x": 0, "y": 8, "w": 24, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "kde_tokenizer_tokens_per_term", "refId": "A", "format": "table", "instant": true}
+      ]
+    }
+  ]
+}

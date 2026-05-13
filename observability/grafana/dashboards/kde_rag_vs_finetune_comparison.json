@@ -1,0 +1,53 @@
+{
+  "uid": "kde-rag-vs-finetune",
+  "title": "KDE RAG vs Fine-tune Comparison",
+  "tags": ["kde", "rag", "eval"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "time": {"from": "now-7d", "to": "now"},
+  "templating": {
+    "list": [
+      {
+        "name": "component",
+        "type": "custom",
+        "query": "vector,graph,hybrid",
+        "current": {"text": "All", "value": "$__all"},
+        "includeAll": true,
+        "multi": true
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Component accuracy by retrieval mode",
+      "gridPos": {"x": 0, "y": 0, "w": 24, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "avg by (component) (kde_eval_component_accuracy{component=~\"$component\"})", "refId": "A", "legendFormat": "{{component}}"}
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "RAG latency (p95) by retrieval mode",
+      "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "histogram_quantile(0.95, sum by (le, component) (rate(kde_rag_latency_seconds_bucket{component=~\"$component\"}[5m])))", "refId": "A", "legendFormat": "{{component}}"}
+      ]
+    },
+    {
+      "id": 3,
+      "type": "bargauge",
+      "title": "Evidence precision by retrieval mode",
+      "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "avg by (component) (kde_eval_evidence_precision{component=~\"$component\"})", "refId": "A", "legendFormat": "{{component}}"}
+      ]
+    }
+  ]
+}

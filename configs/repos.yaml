@@ -1,0 +1,136 @@
+# configs/repos.yaml
+#
+# Declares which KDE source trees the ingest pipeline is allowed to walk.
+#
+# Why this exists:
+#   The lab's policy is "recipes only, no auto-downloads". So this file is
+#   intentionally a *declaration* of what *would* be ingested if the path
+#   existed locally. Nothing here triggers a `git clone`. To use a real KDE
+#   repo, clone it yourself (e.g. `git clone https://invent.kde.org/...`),
+#   point `path:` at the checkout, and flip `enabled: true`.
+#
+# Each entry contributes a `ScanReport` (see src/repo_ingest/scanner.py).
+# The scanner classifies files by extension and folder, so the globs below
+# are an upper bound: anything classifier.py doesn't recognise is dropped.
+
+repos:
+  # ------------------------------------------------------------------
+  # The bundled synthetic mini repo. This is what the vertical-slice
+  # demo uses by default and is the only enabled entry out of the box.
+  # ------------------------------------------------------------------
+  - name: mini_kde_repo        # short id used by the CLI (`kde-lab ingest --repo mini_kde_repo`)
+    path: examples/mini_kde_repo   # relative to repo root; resolved via src/common/paths.py
+    enabled: true              # the only one enabled by default
+    include_globs:             # file patterns the scanner should consider
+      - "**/*.cpp"
+      - "**/*.h"
+      - "**/*.qml"
+      - "**/*.xml"             # D-Bus introspection lives under a `dbus/` subdir
+      - "**/*.kcfg"            # KConfigXT schema files
+      - "**/*.desktop"         # XDG desktop entries (services, applications)
+      - "**/CMakeLists.txt"
+      - "**/*.log"             # synthetic logs bundled with the mini repo
+      - "**/*.md"              # READMEs and architecture notes
+    exclude_globs:             # never walk these even if they match include
+      - "**/.git/**"
+      - "**/build/**"
+      - "**/__pycache__/**"
+    license: "synthetic"       # the mini repo is hand-authored for the lab
+
+  # ------------------------------------------------------------------
+  # Real-KDE stubs. All disabled. They show a learner what a config
+  # entry for an actual KDE module looks like. To enable one:
+  #   1. clone the repo locally
+  #   2. point `path:` at the checkout
+  #   3. set `enabled: true`
+  #   4. verify `license:` against the upstream COPYING/LICENSE file
+  # ------------------------------------------------------------------
+  - name: kio                  # KDE IO library: KIO::Job, KFilePlacesModel, slaves
+    path: ../kde/kio
+    enabled: false
+    include_globs:
+      - "src/**/*.cpp"
+      - "src/**/*.h"
+      - "src/**/*.qml"
+      - "src/**/CMakeLists.txt"
+      - "**/dbus/**/*.xml"
+    exclude_globs:
+      - "**/.git/**"
+      - "**/build/**"
+      - "**/autotests/**"      # tests are useful later; off by default to keep ingest small
+    license: "LGPL-2.1-or-later (verify upstream)"
+
+  - name: kconfig              # KConfig / KConfigXT runtime
+    path: ../kde/kconfig
+    enabled: false
+    include_globs:
+      - "src/**/*.cpp"
+      - "src/**/*.h"
+      - "src/**/*.kcfg"
+      - "src/**/CMakeLists.txt"
+    exclude_globs:
+      - "**/.git/**"
+      - "**/build/**"
+    license: "LGPL-2.1-or-later (verify upstream)"
+
+  - name: dolphin              # File manager. Rich source of KFilePlaces / KIO usage.
+    path: ../kde/dolphin
+    enabled: false
+    include_globs:
+      - "src/**/*.cpp"
+      - "src/**/*.h"
+      - "src/**/*.qml"
+      - "src/**/*.desktop"
+      - "src/**/CMakeLists.txt"
+    exclude_globs:
+      - "**/.git/**"
+      - "**/build/**"
+      - "**/po/**"             # translations not useful for code ontology
+    license: "GPL-2.0-or-later (verify upstream)"
+
+  - name: plasma-desktop       # Plasma shell, KCMs, applets
+    path: ../kde/plasma-desktop
+    enabled: false
+    include_globs:
+      - "applets/**/*.qml"
+      - "applets/**/*.cpp"
+      - "applets/**/*.h"
+      - "kcms/**/*.cpp"
+      - "kcms/**/*.h"
+      - "kcms/**/*.qml"
+      - "**/CMakeLists.txt"
+      - "**/*.desktop"
+    exclude_globs:
+      - "**/.git/**"
+      - "**/build/**"
+      - "**/po/**"
+    license: "GPL-2.0-or-later (verify upstream)"
+
+  - name: kwin                 # Compositor + window manager. D-Bus heavy.
+    path: ../kde/kwin
+    enabled: false
+    include_globs:
+      - "src/**/*.cpp"
+      - "src/**/*.h"
+      - "src/**/*.qml"
+      - "src/**/CMakeLists.txt"
+      - "**/dbus/**/*.xml"
+    exclude_globs:
+      - "**/.git/**"
+      - "**/build/**"
+      - "**/autotests/**"
+    license: "GPL-2.0-or-later (verify upstream)"
+
+  - name: baloo                # File indexing daemon. The classic "why is search slow" target.
+    path: ../kde/baloo
+    enabled: false
+    include_globs:
+      - "src/**/*.cpp"
+      - "src/**/*.h"
+      - "src/**/CMakeLists.txt"
+      - "**/dbus/**/*.xml"
+      - "**/*.kcfg"
+    exclude_globs:
+      - "**/.git/**"
+      - "**/build/**"
+    license: "LGPL-2.1-or-later (verify upstream)"

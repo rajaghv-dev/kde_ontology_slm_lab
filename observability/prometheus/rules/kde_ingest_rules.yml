@@ -1,0 +1,17 @@
+# Ingest-stage alert rules.
+groups:
+  - name: kde_ingest
+    rules:
+      - alert: KdeIngestTooSlow
+        expr: rate(kde_ingest_files_total[5m]) < 1
+        for: 5m
+        labels:
+          severity: warning
+          component: repo_ingest
+        annotations:
+          summary: "Repo ingest is processing fewer than 1 file/sec"
+          description: >
+            The kde_ingest_files_total counter has been increasing at less
+            than one file per second over the last five minutes. Check the
+            scanner logs in artifacts/logs/run-*.jsonl for I/O stalls or a
+            stuck reader.

@@ -1,0 +1,56 @@
+# configs/eval.yaml
+#
+# Drives `kde-lab eval`. In v0 the "model under test" is the RAG baseline
+# in src/rag/answer_with_evidence.py, so the metrics measure how well the
+# graph + retrieval pipeline answers the hand-authored questions in
+# src/eval/eval_set_builder.py.
+#
+# The grader is fully programmatic: it checks whether `must_mention`
+# strings appear (and `must_not_mention` strings don't) in the candidate
+# answer. That keeps the eval loop tight and reproducible.
+
+# ----------------------------------------------------------------------
+# benchmarks: which eval suites to run, in order. "mini_repo" is the
+# only built-in suite in v0. The other names below are stubs reserved
+# for v0.1 and beyond.
+# ----------------------------------------------------------------------
+benchmarks:
+  - "mini_repo"                  # built-in, hand-authored set (6 items)
+  # - "code_navigation"          # v0.1: "which class is in which file" style
+  # - "debug_triage"             # v0.1: log-to-component, log-to-config drills
+  # - "hallucination_resistance" # v0.1: confabulation traps with known wrong answers
+
+# ----------------------------------------------------------------------
+# metrics: what gets emitted to the JSON + Markdown reports.
+#
+# emit:
+#   - mention_recall:        fraction of must_mention substrings present
+#   - pass_rate:             share of items where recall == 1 and no forbidden hit
+#   - forbidden_hit_rate:    share of items where any must_not_mention appears
+#   - hallucination_rate:    items where the model invented an entity name
+#                            (computed from the eval graph; see src/eval/*)
+#   - evidence_precision:    of the cited evidence refs, fraction backed by graph
+#
+# pass_threshold: the lab considers a run "green" only when every threshold
+# is satisfied. The numbers are deliberately modest for v0 because the
+# RAG baseline has no learned component.
+# ----------------------------------------------------------------------
+metrics:
+  emit:
+    - mention_recall
+    - pass_rate
+    - forbidden_hit_rate
+    - hallucination_rate
+    - evidence_precision
+  pass_threshold:
+    overall_pass_rate: 0.7         # at least 70% of items must pass
+    hallucination_rate_max: 0.2    # at most 20% of items may hallucinate
+
+# ----------------------------------------------------------------------
+# reporting: output formats. JSON is for downstream tools; Markdown is
+# for humans skimming the artifact in a PR description.
+# ----------------------------------------------------------------------
+reporting:
+  json: true
+  markdown: true
+  per_category_breakdown: true     # split metrics by item category (architecture_qa, etc.)

@@ -1,0 +1,75 @@
+{
+  "uid": "kde-repo-understanding",
+  "title": "KDE Repo Understanding Overview",
+  "tags": ["kde", "repo_ingest"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {"from": "now-6h", "to": "now"},
+  "timepicker": {},
+  "templating": {
+    "list": [
+      {
+        "name": "repo",
+        "type": "query",
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "query": "label_values(kde_ingest_files_total, repo)",
+        "includeAll": true,
+        "multi": true,
+        "current": {"text": "All", "value": "$__all"}
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Files scanned",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "sum(kde_ingest_files_total{repo=~\"$repo\"})", "refId": "A"}
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Symbols extracted",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "sum(kde_ingest_symbols_total{repo=~\"$repo\"})", "refId": "A"}
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Ontology entities",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "sum(kde_ontology_entities_total{repo=~\"$repo\"})", "refId": "A"}
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Ontology relations",
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "sum(kde_ontology_relations_total{repo=~\"$repo\"})", "refId": "A"}
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Scan rate (files/s)",
+      "gridPos": {"x": 0, "y": 4, "w": 24, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "rate(kde_ingest_files_total{repo=~\"$repo\"}[5m])", "refId": "A", "legendFormat": "{{repo}}"}
+      ]
+    }
+  ]
+}

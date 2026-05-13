@@ -1,0 +1,63 @@
+{
+  "uid": "kde-training-run",
+  "title": "KDE Training Run",
+  "tags": ["kde", "training"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {"from": "now-3h", "to": "now"},
+  "templating": {
+    "list": [
+      {
+        "name": "model_family",
+        "type": "query",
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "query": "label_values(kde_training_loss, model_family)",
+        "includeAll": true,
+        "multi": true,
+        "current": {"text": "All", "value": "$__all"}
+      },
+      {
+        "name": "adapter_name",
+        "type": "query",
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "query": "label_values(kde_training_loss{model_family=~\"$model_family\"}, adapter_name)",
+        "includeAll": true,
+        "multi": true,
+        "current": {"text": "All", "value": "$__all"}
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Training loss",
+      "gridPos": {"x": 0, "y": 0, "w": 24, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "kde_training_loss{model_family=~\"$model_family\", adapter_name=~\"$adapter_name\"}", "refId": "A", "legendFormat": "{{model_family}}/{{adapter_name}}"}
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Answer latency (p95)",
+      "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "histogram_quantile(0.95, sum by (le, model_family) (rate(kde_answer_latency_seconds_bucket[5m])))", "refId": "A", "legendFormat": "p95 {{model_family}}"}
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Latest loss",
+      "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "min(kde_training_loss{model_family=~\"$model_family\"})", "refId": "A"}
+      ]
+    }
+  ]
+}

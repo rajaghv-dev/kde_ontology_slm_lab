@@ -1,0 +1,95 @@
+# configs/ontology.yaml
+#
+# Knobs for the ontology extraction step (src/ontology/extractor.py).
+#
+# Why this exists:
+#   The schema in src/ontology/schema.py is the *vocabulary* of the graph.
+#   This file is the *policy*: which of those vocabulary items should the
+#   extractor actually emit, and where should the graph be exported to.
+#
+#   Toggling a relation off is a learning-friendly way to study what the
+#   downstream eval set still passes without that signal — e.g. flip
+#   `READS_CONFIG: false` and watch the config-key eval items fail.
+
+# ----------------------------------------------------------------------
+# emit_entities: which Entity types the extractors are allowed to add to
+# the bundle. Anything turned off is silently dropped by the extractor.
+# Keep this in sync with ENTITY_TYPES in src/ontology/schema.py.
+# ----------------------------------------------------------------------
+emit_entities:
+  Repository: true        # the top-level container; turning this off would orphan modules
+  Module: true            # one per CMake project()
+  BuildTarget: true       # add_executable / add_library targets
+  SourceFile: true        # .cpp / .cc files
+  HeaderFile: true        # .h / .hpp files
+  CppClass: true          # the heart of the architecture graph
+  Function: true
+  Method: true
+  Signal: true            # Qt Q_SIGNALS
+  Slot: true              # Qt Q_SLOTS
+  QmlFile: true           # .qml files as a whole
+  QmlComponent: true      # named components inside QML
+  Property: true          # Q_PROPERTY declarations
+  DbusService: true       # bus name, e.g. org.kde.minisearch
+  DbusInterface: true     # the interface XML
+  DbusMethod: true        # individual methods on an interface
+  DbusSignal: true        # D-Bus signals (distinct from Qt signals)
+  ConfigFile: true        # .kcfg schema files
+  ConfigGroup: true       # [Group] within KConfig
+  ConfigKey: true         # individual keys
+  Plugin: true            # KPluginFactory plugins
+  DesktopFile: true       # .desktop entries
+  Service: true           # systemd / KDE services
+  LogCategory: true       # Q_LOGGING_CATEGORY declarations
+  LogEvent: true          # individual lines from sample log files
+  TestCase: true          # CTest tests
+  BugReport: false        # off in v0 — no bug tracker ingest yet
+  Commit: false           # off in v0 — no git history ingest yet
+  Symptom: true           # used by the traceability flow
+  RootCause: true
+  Fix: true
+  EvaluationQuestion: true   # eval items become graph nodes for traceability
+  DatasetExample: true       # SFT examples can be linked back to evidence
+
+# ----------------------------------------------------------------------
+# emit_relations: which Relation types the extractor will write.
+# Same logic as emit_entities. Off means "the edge type is not produced",
+# which is useful for ablation studies.
+# ----------------------------------------------------------------------
+emit_relations:
+  CONTAINS: true          # structural: repo -> module -> target -> file
+  BUILDS: true            # CMake target -> source/header it builds
+  DEFINES: true           # file -> class / class -> method
+  DECLARES: true          # header declarations
+  CALLS: false            # off in v0 — call graph extraction is future work
+  EMITS: true             # class -> signal
+  CONNECTS_TO: true       # QML component -> C++ backend, signal -> slot
+  HANDLES: true           # class -> slot handling a signal
+  IMPLEMENTS: true        # class implements interface
+  EXPOSES_DBUS: true      # interface -> method/signal it exposes
+  CALLS_DBUS: false       # off in v0 — outbound D-Bus calls not yet extracted
+  READS_CONFIG: true      # class -> ConfigKey it reads
+  WRITES_CONFIG: false    # off in v0 — write detection is heuristic-heavy
+  LOADS_PLUGIN: true
+  REGISTERS_SERVICE: true
+  LOGS_TO: true           # class -> LogCategory
+  TESTED_BY: true         # class -> TestCase
+  CHANGED_BY: false       # off in v0 — needs git ingest
+  FIXES: false            # off in v0 — needs bug tracker ingest
+  CAUSES: true            # Symptom -> RootCause
+  OBSERVED_IN: true       # Symptom -> LogEvent
+  RELATED_TO: true        # loose catch-all; useful for traceability
+  ANSWERED_BY: true       # EvaluationQuestion -> entity that answers it
+  SUPPORTED_BY_EVIDENCE: true  # DatasetExample -> entity providing evidence
+
+# ----------------------------------------------------------------------
+# export: which downstream graph formats to emit.
+# JSON + GraphML are the cheap, dependency-light options. RDF/OWL and
+# Neo4j are stretch goals for v0.1 and require extra extras
+# (rdflib, neo4j driver).
+# ----------------------------------------------------------------------
+export:
+  json: true              # used by the docs notebooks and by graph.builder.save_json
+  graphml: true           # opens cleanly in Gephi, yEd, NetworkX
+  rdf_owl: false          # v0.1 stretch — requires the [rdf] extra
+  neo4j: false            # v0.2 stretch — requires a running Neo4j and the driver

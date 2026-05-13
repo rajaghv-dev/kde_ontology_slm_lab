@@ -1,0 +1,16 @@
+# Tell Grafana to load any dashboard JSON found under /var/lib/grafana/dashboards
+# (which the compose file mounts from observability/grafana/dashboards/).
+
+apiVersion: 1
+
+providers:
+  - name: kde_lab_dashboards
+    orgId: 1
+    folder: KDE Lab
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false

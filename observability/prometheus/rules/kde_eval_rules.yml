@@ -1,0 +1,29 @@
+# Eval-quality alert rules.
+groups:
+  - name: kde_eval
+    rules:
+      - alert: KdeHallucinationRateHigh
+        expr: kde_eval_hallucination_rate > 0.2
+        for: 10m
+        labels:
+          severity: warning
+          component: eval
+        annotations:
+          summary: "Hallucination rate above 20%"
+          description: >
+            More than one in five answers were graded as hallucinated.
+            Inspect the latest mini_repo_eval.md and tune RAG retrieval or
+            the evidence-citation prompt.
+
+      - alert: KdeEvalAccuracyDropped
+        expr: kde_eval_component_accuracy < 0.6
+        for: 10m
+        labels:
+          severity: warning
+          component: eval
+        annotations:
+          summary: "Eval component accuracy dropped below 60%"
+          description: >
+            kde_eval_component_accuracy fell under 0.6 -- the model is
+            naming the wrong component for too many questions. Compare the
+            current eval split with the last good run.

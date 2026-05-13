@@ -1,0 +1,16 @@
+# Dataset-quality alert rules.
+groups:
+  - name: kde_dataset
+    rules:
+      - alert: KdeDatasetEvidenceCoverageLow
+        expr: kde_dataset_evidence_coverage_ratio < 0.8
+        for: 10m
+        labels:
+          severity: warning
+          component: dataset
+        annotations:
+          summary: "SFT dataset evidence coverage below 80%"
+          description: >
+            Less than 80% of generated SFT examples are backed by an
+            evidence-pointing relation in the graph. Inspect the QA
+            generator and the entity coverage of the ontology extractor.

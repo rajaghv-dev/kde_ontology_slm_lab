@@ -1,0 +1,94 @@
+# Local observability stack for kde_ontology_slm_lab.
+#
+# This file is recipes-only. The user runs it with:
+#
+#     docker compose -f observability/docker-compose.yml up -d
+#
+# It brings up four backends and one log shipper:
+#   - Prometheus on :9090 -- scrapes the lab's metrics exporter on :9101.
+#   - Grafana    on :3000 -- pre-provisioned dashboards + datasources.
+#   - Loki       on :3100 -- log aggregation.
+#   - Promtail        --   tails artifacts/logs/*.jsonl into Loki.
+#   - Tempo      on :3200 / OTLP :4317 -- traces.
+#
+# Why pin image tags? Reproducibility for a learning lab is more important
+# than chasing latest. Bump versions only when you intend to learn the diff.
+
+version: "3.9"
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: kde_obs_prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-lifecycle"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    container_name: kde_obs_grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+
+  loki:
+    image: grafana/loki:3.2.1
+    container_name: kde_obs_loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki_data:/loki
+    command: -config.file=/etc/loki/loki-config.yml
+
+  promtail:
+    image: grafana/promtail:3.2.1
+    container_name: kde_obs_promtail
+    restart: unless-stopped
+    volumes:
+      - ./loki/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+      - ../artifacts/logs:/var/log/kde:ro
+    command: -config.file=/etc/promtail/promtail-config.yml
+    depends_on:
+      - loki
+
+  tempo:
+    image: grafana/tempo:2.6.1
+    container_name: kde_obs_tempo
+    restart: unless-stopped
+    ports:
+      - "3200:3200"   # tempo http
+      - "4317:4317"   # otlp grpc
+    volumes:
+      - ./tempo/tempo.yml:/etc/tempo/tempo.yml:ro
+      - tempo_data:/var/tempo
+    command: -config.file=/etc/tempo/tempo.yml
+
+volumes:
+  prometheus_data:
+  grafana_data:
+  loki_data:
+  tempo_data:

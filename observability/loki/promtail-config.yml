@@ -1,0 +1,37 @@
+# Promtail tails the lab's structured JSONL logs and ships them to Loki.
+#
+# The compose file mounts `artifacts/logs/` at `/var/log/kde/` inside the
+# container, so the path glob below matches both run-*.jsonl and traces-*.jsonl.
+# Each line is already JSON, so we parse it and promote a couple of low-
+# cardinality fields to Loki labels.
+
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: kde_lab_jsonl_logs
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: kde_lab
+          __path__: /var/log/kde/*.jsonl
+    pipeline_stages:
+      - json:
+          expressions:
+            level: level
+            logger: logger
+            trace: trace
+            message: message
+      - labels:
+          level:
+          logger:
+      - timestamp:
+          source: ts
+          format: Unix

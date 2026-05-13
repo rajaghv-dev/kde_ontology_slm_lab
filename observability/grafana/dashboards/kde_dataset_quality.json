@@ -1,0 +1,50 @@
+{
+  "uid": "kde-dataset-quality",
+  "title": "KDE Dataset Quality",
+  "tags": ["kde", "dataset"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "time": {"from": "now-24h", "to": "now"},
+  "templating": {
+    "list": [
+      {
+        "name": "task_type",
+        "type": "query",
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "query": "label_values(kde_dataset_examples_total, task_type)",
+        "includeAll": true,
+        "multi": true,
+        "current": {"text": "All", "value": "$__all"}
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Examples generated",
+      "gridPos": {"x": 0, "y": 0, "w": 8, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "sum(kde_dataset_examples_total{task_type=~\"$task_type\"})", "refId": "A"}]
+    },
+    {
+      "id": 2,
+      "type": "gauge",
+      "title": "Evidence coverage",
+      "gridPos": {"x": 8, "y": 0, "w": 8, "h": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "avg(kde_dataset_evidence_coverage_ratio)", "refId": "A"}]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Examples by task_type",
+      "gridPos": {"x": 0, "y": 4, "w": 24, "h": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "sum by (task_type) (kde_dataset_examples_total{task_type=~\"$task_type\"})", "refId": "A", "legendFormat": "{{task_type}}"}
+      ]
+    }
+  ]
+}

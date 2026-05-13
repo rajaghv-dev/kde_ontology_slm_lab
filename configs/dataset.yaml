@@ -1,0 +1,64 @@
+# configs/dataset.yaml
+#
+# Controls the SFT dataset generator (src/dataset/qa_generator.py).
+#
+# Why this exists:
+#   The qa_generator runs six template families against the knowledge graph.
+#   Each template produces evidence-grounded question/answer pairs in a
+#   schema designed for downstream LoRA SFT. The toggles below let you ablate
+#   one family at a time so you can see how it changes eval pass rates.
+
+# ----------------------------------------------------------------------
+# generators: one switch per template in src/dataset/qa_generator.py.
+# Names match the TEMPLATES tuple in that file.
+# ----------------------------------------------------------------------
+generators:
+  signal_emission: true       # "Which signals does class X emit?" (architecture_qa)
+  config_keys: true           # "Which KConfig keys does X read?"   (code_navigation)
+  qml_backend: true           # "Which C++ class backs QML component Y?" (code_navigation)
+  log_to_component: true      # "Which log category traces X?"      (debugging)
+  dbus_methods: true          # "Which D-Bus methods does interface Z expose?" (tool_use)
+  refusal: true               # negative example: model must refuse cleanly (refusal)
+
+# ----------------------------------------------------------------------
+# output: where the generator writes its JSONL.
+# format is JSONL only in v0 — Parquet support is on the v0.1 roadmap.
+# ----------------------------------------------------------------------
+output:
+  base_path: "artifacts/datasets/"   # split files land under base_path/<split>/
+  format: "jsonl"                    # one record per line; UTF-8; newline-terminated
+
+# ----------------------------------------------------------------------
+# splits: train/validation/test split policy.
+#
+# strategy choices:
+#   - "random":       shuffle then slice by ratio (fast, leaks across components)
+#   - "by_component": all examples for the same C++ class / QML component go
+#                     into the same split. Better generalisation signal.
+#   - "by_time":      future use; requires `Commit` ingest to assign timestamps
+# ----------------------------------------------------------------------
+splits:
+  train: 0.8
+  validation: 0.1
+  test: 0.1
+  strategy: "by_component"           # default: avoid component leakage across splits
+
+# ----------------------------------------------------------------------
+# quality: post-generation filters applied before writing.
+#
+# require_evidence:
+#   Drop any record whose `evidence` list is empty. The whole point of this
+#   dataset is grounded answers; an unevidenced row is worse than no row.
+#
+# contamination_against:
+#   Globs of files whose `question`/`instruction` strings must NOT appear in
+#   the training data. The default scope is the eval set itself, so we never
+#   leak eval questions into training.
+# ----------------------------------------------------------------------
+quality:
+  require_evidence: true
+  reject_empty_output: true
+  deduplicate: true                          # drop (instruction, output) duplicates
+  contamination_against:
+    - "artifacts/datasets/eval/*.jsonl"      # hand-authored eval items
+    - "artifacts/eval_reports/*.jsonl"       # answers logged during prior eval runs

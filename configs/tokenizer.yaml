@@ -1,0 +1,44 @@
+# configs/tokenizer.yaml
+#
+# Controls the tokenizer token-cost analyzer (src/tokenizer/analyze_tokens.py)
+# and any future tokenizer extension step.
+#
+# Why this exists:
+#   KDE code is heavy on CamelCase identifiers (`KFilePlacesModel`,
+#   `qmlRegisterType`), dotted namespaces (`org.kde.minisearch`), and
+#   C++ scope operators (`KIO::Job`). Generic tokenizers shred these into
+#   many subword pieces, which inflates training and inference cost. The
+#   analyzer measures how badly that happens; the optional extension step
+#   adds new vocab entries when the cost is high enough to justify it.
+
+# ----------------------------------------------------------------------
+# analyze: what the analyzer reads when computing the token-cost report.
+# Output is consumed by docs/05_tokenizer_strategy.md and the dataset
+# generator's "should I add a sentinel?" heuristic.
+# ----------------------------------------------------------------------
+analyze:
+  use_offline_fallback: true       # default: the pure-Python whitespace fallback
+                                   # never requires downloading a tokenizer.
+                                   # Set to false only when you have a real HF
+                                   # tokenizer cached locally.
+  term_list: "default"             # "default" => use KDE_TERMS in analyze_tokens.py
+                                   # otherwise: a path to a JSON file with a list of strings
+  phrase_list: "default"           # same convention for the longer phrase list
+  report_path: "artifacts/tokenizer_reports/v0.json"   # where the JSON report is written
+
+# ----------------------------------------------------------------------
+# extend: optional vocabulary-extension step.
+#
+# Disabled by default. Turning it on rewrites the base model's tokenizer
+# AND its embedding matrix, so it must be a deliberate decision.
+# ----------------------------------------------------------------------
+extend:
+  enabled: false                   # opt-in; the v0 path is "do not extend"
+  candidate_vocab_size: 4096       # upper bound on new tokens to consider
+  min_compression_gain: 0.10       # only add tokens that improve chars/token
+                                   # by at least 10% on the canonical term list
+  embedding_init: "mean_of_subwords"  # new-token embedding = mean of its subwords
+                                      # in the existing vocab. Alternatives:
+                                      # "zero", "random_normal"
+  warmup_steps: 500                # extra warmup after vocab extension so the
+                                   # new embeddings settle before LR ramps
