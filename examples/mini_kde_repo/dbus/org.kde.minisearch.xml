@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="org.kde.minisearch">
+    <method name="searchPath">
+      <arg name="path" type="s" direction="in"/>
+      <arg name="query" type="s" direction="in"/>
+    </method>
+    <method name="cancel"/>
+    <method name="currentPath">
+      <arg name="path" type="s" direction="out"/>
+    </method>
+    <signal name="resultsReady">
+      <arg name="paths" type="as"/>
+    </signal>
+    <signal name="searchFailed">
+      <arg name="reason" type="s"/>
+    </signal>
+  </interface>
+</node>

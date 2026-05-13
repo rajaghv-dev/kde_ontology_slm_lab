@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=MiniSearch
+GenericName=File Search Utility
+Comment=Search files quickly
+Exec=minisearch %u
+Icon=system-search
+Categories=Qt;KDE;Utility;
+DBusActivatable=true
+X-KDE-StartupNotify=true

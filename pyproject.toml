@@ -1,0 +1,67 @@
+[project]
+name = "kde-ontology-slm-lab"
+version = "0.0.1"
+description = "Hands-on lab: KDE repo understanding -> ontology -> tokenizer -> dataset -> SLM adapters."
+requires-python = ">=3.10"
+readme = "README.md"
+license = { text = "MIT" }
+
+dependencies = [
+    "networkx>=3.0",
+    "pyyaml>=6.0",
+    "click>=8.1",
+    "tqdm>=4.66",
+    "rich>=13.0",
+]
+
+[project.optional-dependencies]
+tokenizer = [
+    "tokenizers>=0.20",
+    "transformers>=4.45",
+]
+train = [
+    "torch>=2.4",
+    "transformers>=4.45",
+    "peft>=0.13",
+    "trl>=0.11",
+    "accelerate>=0.34",
+    "datasets>=2.18",
+    "bitsandbytes>=0.43; sys_platform == 'linux'",
+]
+rdf = [
+    "rdflib>=7.0",
+]
+viz = [
+    "matplotlib>=3.8",
+    "graphviz>=0.20",
+]
+obs = [
+    "prometheus-client>=0.20",
+]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+]
+
+[project.scripts]
+kde-lab = "src.cli.main:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "B", "UP"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

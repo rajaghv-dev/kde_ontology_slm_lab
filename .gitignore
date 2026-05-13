@@ -1,0 +1,39 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Generated artifacts (the mini-repo pipeline writes here)
+artifacts/graphs/*
+artifacts/ontology/*
+artifacts/tokenizer_reports/*
+artifacts/datasets/*
+artifacts/training_runs/*
+artifacts/eval_reports/*
+artifacts/logs/*
+artifacts/metrics/*
+artifacts/plots/*
+!artifacts/**/.gitkeep
+
+# Generated datasets
+datasets/raw/*
+datasets/processed/*
+datasets/sft/*
+datasets/preference/*
+datasets/eval/*
+!datasets/**/.gitkeep
+
+# Models / weights — never committed
+models/
+checkpoints/
+*.safetensors
+*.gguf
+*.bin
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp

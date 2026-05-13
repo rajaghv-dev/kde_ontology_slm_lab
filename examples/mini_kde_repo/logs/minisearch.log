@@ -1,0 +1,10 @@
+2026-05-13T10:00:01.123  INFO  minisearch              Starting MiniSearch 0.1.0
+2026-05-13T10:00:01.456  DEBUG minisearch.backend      scanDirectory "/home/raja/Documents" query= "report" max= 100
+2026-05-13T10:00:01.512  DEBUG minisearch.backend      scan complete processed= 412 hits= 23
+2026-05-13T10:05:14.220  DEBUG minisearch.backend      scanDirectory "/home/raja" query= "" max= 100
+2026-05-13T10:05:21.005  DEBUG minisearch.backend      scan complete processed= 48211 hits= 100
+2026-05-13T10:05:21.012  WARN  minisearch              Search took 6.78s for 48211 files — consider lowering MaxResults
+2026-05-13T10:07:33.811  DEBUG minisearch.backend      scanDirectory "/" query= "kde" max= 100
+2026-05-13T10:07:55.402  DEBUG minisearch.backend      scan complete processed= 312044 hits= 100
+2026-05-13T10:07:55.403  WARN  minisearch              Search took 21.59s for 312044 files — backend.scanDirectory hot
+2026-05-13T10:08:01.000  DEBUG minisearch.backend      cancelScan requested
