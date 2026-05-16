@@ -52,7 +52,7 @@ folder and are loaded read-only from `observability/grafana/dashboards/`.
 ```bash
 # from the repo root
 pip install prometheus_client    # if you want metrics exposed
-python -m observability.exporters.kde_metrics_exporter --port 9101 &
+python observability/exporters/kde_metrics_exporter.py --port 9101 &
 docker compose -f observability/docker-compose.yml up -d
 ```
 
@@ -115,6 +115,6 @@ You can prime the JSONL sinks with fake data so Grafana panels light up
 before you ever run `examples/run_mini_repo_pipeline.py`:
 
 ```bash
-python -m observability.exporters.kde_log_generator
-python -m observability.exporters.kde_trace_generator
+python observability/exporters/kde_log_generator.py
+python observability/exporters/kde_trace_generator.py
 ```

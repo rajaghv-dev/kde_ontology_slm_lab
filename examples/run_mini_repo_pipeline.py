@@ -146,9 +146,11 @@ def main() -> int:
     log.info(f"trace={tid} eval pass rate = {rep_data['overall_pass_rate']:.2%}, "
              f"report at {jp.name} and {mp.name}")
 
-    # Bundle ontology dump for the docs notebooks
+    # Bundle ontology dump for the docs notebooks and for `kde-lab graph --repo mini_kde_repo`
     onto_path = ONTOLOGY_DIR / "mini_repo_entities.jsonl"
     write_jsonl(onto_path, [e.__dict__ for e in bundle.entities.values()])
+    rel_path = ONTOLOGY_DIR / "mini_repo_relations.jsonl"
+    write_jsonl(rel_path, [r.__dict__ for r in bundle.relations])
     log.info(f"trace={tid} ontology dump at {onto_path.name}")
 
     print()

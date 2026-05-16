@@ -49,7 +49,7 @@ Concrete target questions (the eval benchmarks measure exactly these):
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
-pip install -e .
+pip install -e ".[dev]"
 python examples/run_mini_repo_pipeline.py
 ```
 
@@ -68,13 +68,24 @@ The repo runs in four modes:
 
 Same policy as kde-slm: this repo ships **code, configs, and a synthetic fixture**. It does not auto-download model weights, datasets, or KDE source. Any network access is opt-in via an explicit CLI flag. See `docs/12_privacy_and_license_notes.md`.
 
-## Repo layout
+## Documentation
 
-See `docs/00_big_picture.md` for the conceptual map and the per-directory `README.md` files for details.
+Key reference documents:
+
+| Doc | Purpose |
+|---|---|
+| [`docs/architecture.md`](docs/architecture.md) | Architecture reference with Mermaid diagram |
+| [`docs/interfaces.md`](docs/interfaces.md) | Public API reference (849 lines) |
+| [`docs/setup-validation.md`](docs/setup-validation.md) | Verified setup steps |
+| [`docs/examples.md`](docs/examples.md) | All examples with expected output |
+| [`docs/observability.md`](docs/observability.md) | Observability guide (Prometheus / Grafana / Loki / Tempo) |
+| [`AGENTS.md`](AGENTS.md) | For AI coding agents working on this repo |
+
+See `docs/00_big_picture.md` for the full conceptual map and the per-directory `README.md` files for module-level details.
 
 ## Status
 
-Early lab. The vertical slice is runnable end-to-end on the mini repo. Most advanced features (full training, adapter routing, observability stack) are scaffolded with working stubs. See `TODO.md` and `CHANGELOG.md`.
+Lab — v0.1 complete. The vertical slice runs end-to-end on the mini repo. Tests: 64+ passing. CI: GitHub Actions configured (Python 3.10–3.12 matrix). Advanced features (full training, adapter routing, observability Docker stack) are scaffolded with working stubs. See `TODO.md` and `CHANGELOG.md`.
 
 ## License
 

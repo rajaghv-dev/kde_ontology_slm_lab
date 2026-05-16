@@ -9,6 +9,17 @@ from typing import Any
 import yaml
 
 
+def deep_merge(base: dict, overlay: dict) -> dict:
+    """Recursive dict merge: overlay wins for scalars; nested dicts are merged."""
+    out = dict(base)
+    for k, v in overlay.items():
+        if isinstance(v, dict) and isinstance(out.get(k), dict):
+            out[k] = deep_merge(out[k], v)
+        else:
+            out[k] = v
+    return out
+
+
 def load_yaml(path: Path, default: dict[str, Any] | None = None) -> dict[str, Any]:
     """Load a YAML file, returning ``default`` (or ``{}``) when the file is absent."""
     if not path.exists():

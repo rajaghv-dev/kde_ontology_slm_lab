@@ -12,17 +12,6 @@ from __future__ import annotations
 import click
 
 
-def _deep_merge(base: dict, overlay: dict) -> dict:
-    """Recursive dict merge: overlay wins for scalars, dicts merge."""
-    out = dict(base)
-    for k, v in overlay.items():
-        if isinstance(v, dict) and isinstance(out.get(k), dict):
-            out[k] = _deep_merge(out[k], v)
-        else:
-            out[k] = v
-    return out
-
-
 def register(cli: click.Group) -> None:
     @cli.command("train", help="Print the training recipe that would run. Does not launch training.")
     @click.option("--profile", "profile_override", default=None,
@@ -32,7 +21,7 @@ def register(cli: click.Group) -> None:
     def train(profile_override: str | None, model_key_override: str | None) -> None:
         import json
 
-        from src.common.config import load_yaml
+        from src.common.config import deep_merge, load_yaml
         from src.common.logging import get_logger
         from src.common.paths import CONFIGS
 
@@ -45,7 +34,7 @@ def register(cli: click.Group) -> None:
         model_key = model_key_override or cfg.get("model_key")
 
         profile_overlay = (cfg.get("profiles", {}) or {}).get(profile, {})
-        resolved = _deep_merge(
+        resolved = deep_merge(
             {k: v for k, v in cfg.items() if k != "profiles"},
             profile_overlay,
         )

@@ -84,18 +84,25 @@ Will the base model fit in VRAM with bf16 weights + optimiser + activations?
 
 [../scripts/train_unsloth_lora.sh](../scripts/train_unsloth_lora.sh) and [../scripts/train_hf_peft_lora.sh](../scripts/train_hf_peft_lora.sh) (in flight as of v0; see [../TODO.md](../TODO.md)) wrap the two paths. The intended invocations:
 
-```
-scripts/train_unsloth_lora.sh \
-    --base /path/to/base-snapshot \
-    --dataset artifacts/datasets/mini_repo_sft_v0.jsonl \
-    --adapter-out artifacts/training_runs/architecture_v0 \
-    --profile local_16gb \
-    --task-type architecture_qa
+```bash
+# Dry-run (default — prints resolved config, no GPU needed)
+CONFIG=configs/training.yaml DRY_RUN=1 bash scripts/train_unsloth_lora.sh
+
+# Real training (requires GPU and [train] extras)
+CONFIG=configs/training.yaml DRY_RUN=0 bash scripts/train_unsloth_lora.sh
 ```
 
-The script reads the profile from `configs/training.yaml`, sets `max_seq_len`, `batch_size`, `precision`, `lr`, `epochs`, and `target_modules` accordingly, and calls Unsloth's `FastLanguageModel.from_pretrained` + `FastLanguageModel.get_peft_model` under the hood.
+The scripts are configured via `configs/training.yaml` directly — `max_seq_len`, `batch_size`, `precision`, `lr`, `epochs`, and `target_modules` are all set there. Under the hood the Unsloth variant calls `FastLanguageModel.from_pretrained` + `FastLanguageModel.get_peft_model`.
 
-The HF/PEFT counterpart is shaped the same way but uses `AutoModelForCausalLM` + `peft.LoraConfig` + `trl.SFTTrainer`.
+The HF/PEFT counterpart uses the same env-var pattern and the same `configs/training.yaml`, but drives training via `AutoModelForCausalLM` + `peft.LoraConfig` + `trl.SFTTrainer`:
+
+```bash
+# Dry-run
+CONFIG=configs/training.yaml DRY_RUN=1 bash scripts/train_hf_peft_lora.sh
+
+# Real training
+CONFIG=configs/training.yaml DRY_RUN=0 bash scripts/train_hf_peft_lora.sh
+```
 
 Outputs land under `artifacts/training_runs/<adapter_name>/`:
 

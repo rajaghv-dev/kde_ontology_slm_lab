@@ -1,6 +1,6 @@
 [project]
 name = "kde-ontology-slm-lab"
-version = "0.0.1"
+version = "0.0.2"
 description = "Hands-on lab: KDE repo understanding -> ontology -> tokenizer -> dataset -> SLM adapters."
 requires-python = ">=3.10"
 readme = "README.md"
@@ -19,6 +19,7 @@ dependencies = [
 tokenizer = [
     "tokenizers>=0.20",
     "transformers>=4.45",
+    "sentence-transformers>=2.7",
 ]
 train = [
     "torch>=2.4",
@@ -38,6 +39,8 @@ viz = [
 ]
 obs = [
     "prometheus-client>=0.20",
+    "opentelemetry-sdk>=1.25",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.25",
 ]
 dev = [
     "pytest>=8.0",

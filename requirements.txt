@@ -1,5 +1,6 @@
 # Minimum runtime deps for the vertical slice. Optional extras live in pyproject.toml.
 networkx>=3.0
+numpy>=1.26
 pyyaml>=6.0
 click>=8.1
 tqdm>=4.66

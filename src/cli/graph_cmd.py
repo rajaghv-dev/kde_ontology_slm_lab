@@ -38,6 +38,9 @@ def register(cli: click.Group) -> None:
         if rel_path.exists():
             for rec in read_jsonl(rel_path):
                 bundle.add_relation(Relation(**rec))
+        else:
+            log.warning(f"no relations JSONL at {rel_path}; graph will have 0 edges. "
+                        f"Run `kde-lab ingest --repo {repo_name}` to generate it.")
 
         g = build_graph(bundle)
 

@@ -5,14 +5,23 @@ Tracked outside of issue tracker for the v0 lab. Each item rolls up into the mil
 ## Done in v0
 - [x] Vertical slice: mini repo → ingest → ontology → graph → traceability → tokenizer report → dataset → RAG → eval → smoke tests.
 
-## Next (v0.1, in flight)
-- [ ] Fill out remaining learning chapters in `docs/` (00–14).
-- [ ] Complete the 10 Jupyter notebooks in `notebooks/`.
-- [ ] Configs in `configs/` for all seven sections (repos / models / tokenizer / ontology / dataset / training / eval).
-- [ ] Observability stack under `observability/` — Prometheus rules, Grafana dashboards, Loki, Tempo, docker-compose, exporters.
-- [ ] Training recipes under `src/training/` — Unsloth + HF/PEFT SFT, DPO, optional GRPO, merge_adapter, export_gguf, train router.
-- [ ] Advanced RAG: `src/rag/embeddings.py`, `vector_store.py`, `hybrid_search.py`.
-- [ ] CLI: `src/cli/` subcommands wired through `kde-lab ingest|graph|tokenizer|dataset|train|eval`.
+## Done in v0.1
+- [x] `kde-lab` CLI fully wired (ingest, graph, tokenizer, dataset, train, eval).
+- [x] Training recipe scripts (`train_unsloth_lora.sh`, `train_hf_peft_lora.sh`).
+- [x] Observability stack scaffolded.
+- [x] Advanced RAG (`embeddings`, `vector_store`, `hybrid_search`).
+- [x] Fill out remaining learning chapters in `docs/` (00–14).
+- [x] Configs in `configs/` for all seven sections (repos / models / tokenizer / ontology / dataset / training / eval).
+
+## Next (v0.2)
+- [ ] Boot observability Docker stack end-to-end and validate dashboards.
+- [ ] Complete 10 Jupyter notebooks (currently scaffolded).
+- [ ] Add `sentence-transformers` to `[obs]` or new `[embed]` extra in pyproject.toml.
+- [ ] Add `opentelemetry-sdk` to pyproject.toml optional extras.
+- [ ] Add mypy to `[dev]` extras and run type checking in CI.
+- [ ] Implement real training loop in `src/training/` (requires GPU + weights).
+- [ ] Fix `from_desktop` self-loop in `src/ontology/extractor.py` (cosmetic).
+- [ ] Real KDE repo ingestion against a small invent.kde.org slice.
 
 ## Optional / stretch
 - [ ] Neo4j and RDF/OWL exporters for the graph.

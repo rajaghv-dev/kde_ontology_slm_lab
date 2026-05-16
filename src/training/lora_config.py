@@ -19,22 +19,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from src.common.config import load_yaml
-
-
-def _deep_merge(base: dict, overlay: dict) -> dict:
-    """Recursive dict merge: overlay wins for scalars, dicts merge.
-
-    Kept local to this module (rather than importing from cli.train_cmd) so
-    ``src.training`` has no implicit dependency on the click CLI.
-    """
-    out = dict(base)
-    for k, v in overlay.items():
-        if isinstance(v, dict) and isinstance(out.get(k), dict):
-            out[k] = _deep_merge(out[k], v)
-        else:
-            out[k] = v
-    return out
+from src.common.config import deep_merge, load_yaml
 
 
 @dataclass
@@ -79,7 +64,7 @@ class LoRAConfig:
 
         profile = profile_override or defaults.get("profile", "local_8gb")
         overlay = profiles.get(profile, {}) or {}
-        resolved = _deep_merge(defaults, overlay)
+        resolved = deep_merge(defaults, overlay)
 
         # Apply overrides last so they always win.
         resolved["profile"] = profile

@@ -12,16 +12,15 @@ Three reasons:
 
 If you skip this layer, you can still run everything — the JSONL fallback is enough. But you give up the regression detection that makes the lab a *lab*.
 
-## Mode A — no-install JSONL/CSV/Markdown fallback (default)
+## Mode A — no-install JSONL/Markdown fallback (default)
 
 The default mode does not require Docker. Each pipeline run writes:
 
-- `artifacts/metrics/pipeline_run.jsonl` — one row per stage with start/end time, counts, and any error.
-- `artifacts/metrics/entity_counts.csv` — one row per run, columns per entity type.
-- `artifacts/metrics/eval_history.csv` — one row per run, columns per eval category.
-- `artifacts/eval_reports/<name>.md` — the human-readable Markdown report.
+- `artifacts/metrics/run-<trace_id>.jsonl` — one file per run, containing counters, gauges, and histograms emitted by `src.observability.metrics`.
+- `artifacts/logs/run-<trace_id>.jsonl` — structured JSON log lines emitted by `src.observability.logger.get_obs_logger`, one file per run.
+- `artifacts/eval_reports/<name>.md` — the human-readable Markdown report produced by `python -m src.observability.report`.
 
-These are append-only. A small `scripts/metrics_summary.py` (planned) reads them and prints the last N runs as a Markdown table.
+Each run gets its own JSONL file (keyed by trace id). No CSV files are produced. A `scripts/metrics_summary.py` reader is planned.
 
 This mode is enough for solo learning and small experiments. It scales to a few hundred runs. After that you want indexes.
 
@@ -45,11 +44,12 @@ Bring it up with:
 cd observability && docker compose up -d
 ```
 
-The four services and what each is for:
+The five services and what each is for:
 
 - **Prometheus.** Scrapes counters and histograms. Stores time series. Default target: each Python exporter on `localhost:<port>`.
 - **Grafana.** Reads from Prometheus, Loki, and Tempo. Renders dashboards. Default port 3000.
-- **Loki.** Aggregates structured logs from the pipeline. The lab's logger in [../src/common/logging.py](../src/common/logging.py) emits JSON lines that Loki ingests via a `promtail` container.
+- **Loki.** Aggregates structured logs from the pipeline. Receives log streams forwarded by Promtail.
+- **Promtail.** Log-shipping sidecar. Tails `artifacts/logs/*.jsonl` files on disk and pushes each JSON line into Loki. The JSON lines are emitted by `src.observability.logger.get_obs_logger` in [../src/observability/logger.py](../src/observability/logger.py).
 - **Tempo.** Stores traces if you instrument with OpenTelemetry. The `trace_id` helper in [../src/common/ids.py](../src/common/ids.py) is the seed for span correlation.
 
 The exporters under `observability/exporters/` are tiny Python servers that:
@@ -210,7 +210,7 @@ The seven dashboards correspond, roughly, to the seven stages of the pipeline pl
 The trace ids are short (10 hex chars). One pipeline run shares one trace id across every log line; that makes log queries trivial:
 
 ```
-{job="kde-lab"} | json | trace_id="abcdef1234"
+{job="kde_lab"} | json | trace_id="abcdef1234"
 ```
 
 In Tempo, a span tree per stage gives you the full per-run flame chart. With v0.1 instrumentation the chart looks like:
@@ -247,7 +247,7 @@ Build the rule once. Re-use the shape for every category.
 ## Exercises
 
 1. Pick three metrics from the list above. Sketch how you would compute them from the v0 pipeline's existing artifacts. Confirm the JSONL fallback already supports all three.
-2. Open the entity-counts CSV (after the v0.1 fallback writes it). Identify the smallest "missing entity" you would alert on.
+2. Open an `artifacts/metrics/run-<trace_id>.jsonl` file. Identify the smallest "missing entity" count you would alert on.
 3. Choose one Grafana dashboard. List the four panels it needs and the Prometheus queries (PromQL) behind each.
 4. Argue for or against using `model_family` as a metric label vs. a log field. Where does the boundary sit for you?
 5. Bring up the Docker stack on your workstation and confirm Prometheus scrapes a `kde_ingest_files_total` value after one pipeline run.

@@ -154,7 +154,7 @@ preference:
   epochs: 1
 ```
 
-The CLI plan (`kde-lab train --profile local_16gb --adapter architecture --base qwen-small`) is the v0.1 user interface.
+The current `kde-lab train` CLI accepts `--profile` and `--model-key` and prints the resolved training recipe as a dry-run. The full planned interface (`--adapter`, `--base`, and a real training loop) is a v0.1 target; see `TODO.md`.
 
 ## Compute profiles
 
