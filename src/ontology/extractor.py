@@ -234,7 +234,13 @@ def from_desktop(bundle: ExtractionBundle, res: DesktopReadResult) -> None:
         source_path=str(res.path),
     ))
     if res.dbus_activatable:
-        bundle.add_relation(Relation(src=did, rel="REGISTERS_SERVICE", dst=did,
+        sid = bundle.add_entity(Entity(
+            id=make_id("Service", f"{res.path}::dbus"),
+            type="Service", name=res.name,
+            properties={"activation": "DBusActivatable"},
+            source_path=str(res.path),
+        ))
+        bundle.add_relation(Relation(src=did, rel="REGISTERS_SERVICE", dst=sid,
                                      properties={"note": "DBusActivatable"}))
 
 

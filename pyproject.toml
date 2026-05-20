@@ -41,10 +41,12 @@ obs = [
     "prometheus-client>=0.20",
     "opentelemetry-sdk>=1.25",
     "opentelemetry-exporter-otlp-proto-grpc>=1.25",
+    "sentence-transformers>=2.7",
 ]
 dev = [
     "pytest>=8.0",
     "ruff>=0.6",
+    "mypy>=1.10",
 ]
 
 [project.scripts]
